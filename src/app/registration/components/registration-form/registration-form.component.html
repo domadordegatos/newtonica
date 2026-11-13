@@ -1,0 +1,350 @@
+<div class="registration-container">
+  <div class="reg-header">
+    <img *ngIf="siteConfig.logoBase64" [src]="siteConfig.logoBase64" alt="Logo" class="site-logo">
+    <h1>{{ siteConfig.name }}</h1>
+    <p class="motto">{{ siteConfig.motto || 'Inscripción de Proyectos' }}</p>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <p>Cargando...</p>
+  </div>
+
+  <!-- Desactivado -->
+  <div class="access-card closed-card" *ngIf="!loading && accessState === 'closed'">
+    <div class="access-icon closed-icon">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+    </div>
+    <h2>Inscripciones no disponibles</h2>
+    <p>{{ siteConfig.closedMessage || 'Por ahora no hay proyectos ni retos disponibles. Vuelve pronto.' }}</p>
+  </div>
+
+  <!-- Aviso: se puede explorar, pero las inscripciones aún no abren -->
+  <div class="countdown-notice" *ngIf="!loading && accessState === 'countdown' && periodActive">
+    <div class="notice-title">
+      <span class="notice-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <polyline points="12 7 12 12 15.5 14"/>
+        </svg>
+      </span>
+      <strong>Las inscripciones aún no están abiertas</strong>
+    </div>
+    <span class="notice-sub">Puedes explorar los proyectos y retos mientras tanto.</span>
+
+    <div class="notice-timer">
+      <span class="timer-chip">
+        <b>{{ countdown.days }}</b>{{ countdown.days === 1 ? 'día' : 'días' }}
+      </span>
+      <span class="timer-chip">
+        <b>{{ countdown.hours }}</b>h
+      </span>
+      <span class="timer-chip">
+        <b>{{ countdown.minutes }}</b>m
+      </span>
+      <span class="timer-chip seconds">
+        <b>{{ countdown.seconds }}</b>s
+      </span>
+    </div>
+
+    <p class="notice-date" *ngIf="opensAtLabel">Abren el {{ opensAtLabel }}</p>
+  </div>
+
+  <div class="no-period" *ngIf="!loading && canBrowse && !periodActive">
+    <h2>Las inscripciones no están disponibles</h2>
+    <p>Actualmente no hay un periodo de inscripción activo.</p>
+  </div>
+
+  <!-- Success message -->
+  <div class="success-card" *ngIf="submitted && registrationsOpen">
+    <div class="success-icon">✓</div>
+    <h2>Solicitud enviada</h2>
+    <p>Tu solicitud de inscripción ha sido enviada y está <strong>pendiente de aprobación</strong> por parte del comité.</p>
+    <p class="info">Para más información sobre el estado de tu solicitud, comunícate directamente con el comité organizador.</p>
+    <button class="btn btn-primary" (click)="reset()">Realizar otra inscripción</button>
+  </div>
+
+  <!-- Category Selection -->
+  <div class="category-selection" *ngIf="!loading && canBrowse && periodActive && !submitted && !selectedCategory">
+    <h2 class="category-title">Selecciona una categoría</h2>
+    <div class="category-cards">
+      <div class="category-card" (click)="selectCategory('projects')">
+        <div class="category-icon projects-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+        </div>
+        <h3>Proyectos</h3>
+        <p>Inscríbete en un proyecto de la feria de ciencias</p>
+        <span class="category-count" *ngIf="projects.length">{{ availableCount }} disponible(s)</span>
+        <div class="category-grades" *ngIf="projectGrades.length">
+          <span class="grade-tag-sm" *ngFor="let g of projectGrades">{{ g | grade }}</span>
+        </div>
+      </div>
+      <div class="category-card" (click)="selectCategory('challenges')">
+        <div class="category-icon challenges-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <h3>Retos</h3>
+        <p>Consulta la información de los retos disponibles</p>
+        <span class="category-count" *ngIf="challenges.length">{{ challenges.length }} disponible(s)</span>
+        <div class="category-grades" *ngIf="challengeGrades.length">
+          <span class="grade-tag-sm challenge-grade" *ngFor="let g of challengeGrades">{{ g | grade }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS: Registration Form -->
+  <div class="form-container" *ngIf="!loading && canBrowse && periodActive && !submitted && selectedCategory === 'projects'">
+
+    <button class="btn-back-category" (click)="goBackToCategories()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Volver a categorías
+    </button>
+
+    <!-- Step 1: Select Project -->
+    <div class="step-card">
+      <div class="step-number">1</div>
+      <div class="step-content">
+        <p class="form-label">{{ registrationsOpen ? 'Formulario de registro' : 'Proyectos disponibles' }}</p>
+        <h2>{{ registrationsOpen ? 'Selecciona un proyecto' : 'Consulta los proyectos' }}</h2>
+        <p *ngIf="registrationsOpen">Solo se muestran los proyectos con cupos disponibles.</p>
+        <p *ngIf="!registrationsOpen">
+          Podrás inscribirte cuando abran las inscripciones. Mientras tanto, haz clic en el ojo para ver la información de cada proyecto.
+        </p>
+
+        <div class="priority-note" *ngIf="projects.length">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <polyline points="12 7 12 12 15.5 14"/>
+          </svg>
+          <div>
+            <strong>Los cupos se asignan por orden de llegada</strong>
+            <p>
+              El sistema guarda el segundo exacto de cada envío. Enviar el formulario no
+              asegura el cupo: si otro grupo lo envía antes, el cupo queda ocupado.
+              Ten listos los nombres e inscríbete lo más rápido posible.
+            </p>
+          </div>
+        </div>
+
+        <!-- Sin esto los estudiantes no notan que la tarjeta hay que tocarla. -->
+        <div class="select-hint" *ngIf="registrationsOpen && !selectedProject && projects.length">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11.5V6a1.5 1.5 0 0 1 3 0v5.5"/>
+            <path d="M12 11.5V9.5a1.5 1.5 0 0 1 3 0v2"/>
+            <path d="M15 11.5v-1a1.5 1.5 0 0 1 3 0V16a5 5 0 0 1-5 5h-1a6 6 0 0 1-6-6v-3a1.5 1.5 0 0 1 3 0"/>
+          </svg>
+          <span><strong>Toca el proyecto</strong> en el que te quieres inscribir para continuar.</span>
+        </div>
+
+        <div class="selected-banner" *ngIf="registrationsOpen && selectedProject">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>Proyecto seleccionado: <strong>{{ selectedProject.name }}</strong></span>
+        </div>
+
+        <div class="projects-list" *ngIf="projects.length; else noProjects">
+          <div class="project-option" *ngFor="let project of projects"
+            [class.selected]="selectedProject?.id === project.id"
+            [class.browse-only]="!registrationsOpen"
+            [class.full]="isFull(project)"
+            (click)="selectProject(project)">
+            <div class="project-option-info">
+              <h3>
+                {{ project.name }}
+                <span class="full-tag" *ngIf="isFull(project)">Cupos agotados</span>
+              </h3>
+              <span class="slots" *ngIf="!isFull(project)">
+                {{ project.totalSlots - project.usedSlots }} cupo(s) disponible(s) · Máx {{ project.maxMembers }} integrantes
+              </span>
+              <span class="slots" *ngIf="isFull(project)">
+                Ya no admite más grupos · Máx {{ project.maxMembers }} integrantes
+              </span>
+              <div class="option-grades">
+                <span class="grade-tag-sm" *ngFor="let g of project.allowedGrades">{{ g | grade }}</span>
+              </div>
+            </div>
+            <div class="project-option-actions">
+              <button class="btn-view-detail" *ngIf="projectsWithDetail.has(project.id) || projectsHaveRubric"
+                (click)="viewProjectDetail($event, project.id)"
+                title="Ver información del proyecto">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+              <div class="check-circle" *ngIf="selectedProject?.id === project.id">✓</div>
+              <div class="check-circle empty"
+                *ngIf="registrationsOpen && !isFull(project) && selectedProject?.id !== project.id"></div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noProjects>
+          <div class="empty-msg">
+            <p>No hay proyectos disponibles en este momento. Todos los cupos están llenos.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Step 2: Select Students -->
+    <div class="step-card" *ngIf="registrationsOpen" [class.locked]="!selectedProject" #stepTwo>
+      <div class="step-number">2</div>
+      <div class="step-content">
+        <h2>Selecciona los integrantes del grupo</h2>
+
+        <div class="locked-msg" *ngIf="!selectedProject">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Primero elige un proyecto arriba. Luego podrás agregar a los integrantes.</span>
+        </div>
+
+        <ng-container *ngIf="selectedProject">
+        <p>Busca y selecciona hasta {{ selectedProject.maxMembers }} estudiantes. Solo aparecen los habilitados para este proyecto.</p>
+
+        <div class="search-box" *ngIf="selectedStudents.length < selectedProject.maxMembers">
+          <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="filterStudents()"
+            placeholder="Buscar estudiante por nombre...">
+        </div>
+
+        <div class="search-results" *ngIf="searchTerm && filteredStudents.length">
+          <div class="search-item" *ngFor="let student of filteredStudents | slice:0:10"
+            (click)="addStudent(student)">
+            <span class="name">{{ student.fullName }}</span>
+            <span class="grade">{{ student.grade | grade }}</span>
+          </div>
+        </div>
+
+        <div class="no-results" *ngIf="searchTerm && !filteredStudents.length">
+          <p>No se encontraron estudiantes disponibles con ese nombre.</p>
+        </div>
+
+        <div class="error-msg" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <div class="selected-students" *ngIf="selectedStudents.length">
+          <h4>Integrantes seleccionados ({{ selectedStudents.length }}/{{ selectedProject.maxMembers }})</h4>
+          <div class="selected-item" *ngFor="let student of selectedStudents; let i = index">
+            <div class="student-info">
+              <span class="name">{{ student.fullName }}</span>
+              <span class="grade">{{ student.grade | grade }}</span>
+            </div>
+            <button class="remove-btn" (click)="removeStudent(i)">×</button>
+          </div>
+        </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Step 3: Submit -->
+    <div class="step-card" *ngIf="registrationsOpen" [class.locked]="!canSubmit()">
+      <div class="step-number">3</div>
+      <div class="step-content">
+        <h2>Confirmar inscripción</h2>
+
+        <div class="summary" *ngIf="selectedProject && selectedStudents.length">
+          <p><strong>Proyecto:</strong> {{ selectedProject.name }}</p>
+          <p><strong>Integrantes:</strong> {{ selectedStudents.length }}</p>
+        </div>
+
+        <!-- Decir qué falta evita el "el botón no se habilita". -->
+        <div class="locked-msg" *ngIf="!selectedProject">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Falta elegir el proyecto en el paso 1.</span>
+        </div>
+        <div class="locked-msg" *ngIf="selectedProject && !selectedStudents.length">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <span>Falta agregar al menos un integrante en el paso 2.</span>
+        </div>
+
+        <div class="submit-error" *ngIf="submitError">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>{{ submitError }}</span>
+        </div>
+
+        <button class="btn btn-primary btn-lg" (click)="submit()" [disabled]="!canSubmit()">
+          {{ submitting ? 'Enviando...' : 'Enviar solicitud de inscripción' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHALLENGES: Information View -->
+  <div class="form-container" *ngIf="!loading && canBrowse && periodActive && !submitted && selectedCategory === 'challenges'">
+
+    <button class="btn-back-category" (click)="goBackToCategories()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Volver a categorías
+    </button>
+
+    <div class="step-card">
+      <div class="step-number" style="background: #f59e0b;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div class="step-content">
+        <p class="form-label" style="color: #f59e0b;">Retos disponibles</p>
+        <h2>Consulta los retos</h2>
+        <p>Haz clic en el ojo para ver la información completa de cada reto.</p>
+
+        <div class="projects-list" *ngIf="challenges.length; else noChallenges">
+          <div class="challenge-option" *ngFor="let challenge of challenges"
+            (click)="viewChallengeDetail(challenge.id)">
+            <div class="project-option-info">
+              <h3>{{ challenge.name }}</h3>
+              <span class="slots">
+                Máx {{ challenge.maxMembers }} participantes por grupo
+              </span>
+              <div class="option-grades">
+                <span class="grade-tag-sm" *ngFor="let g of challenge.allowedGrades">{{ g | grade }}</span>
+              </div>
+            </div>
+            <div class="project-option-actions">
+              <button class="btn-view-detail" *ngIf="challengesWithDetail.has(challenge.id)"
+                (click)="viewChallengeDetail(challenge.id, $event)"
+                title="Ver información del reto">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noChallenges>
+          <div class="empty-msg">
+            <p>No hay retos disponibles en este momento.</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+</div>

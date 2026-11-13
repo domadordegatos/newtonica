@@ -1,0 +1,85 @@
+<div class="section">
+  <div class="section-header">
+    <h1>Gestión de Estudiantes</h1>
+    <div class="header-actions">
+      <label class="btn btn-primary file-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        {{ uploading ? 'Cargando...' : 'Cargar Excel' }}
+        <input type="file" accept=".xlsx,.xls" (change)="onFileSelected($event)" hidden [disabled]="uploading">
+      </label>
+      <button class="btn btn-outline" (click)="showAddForm = !showAddForm">
+        {{ showAddForm ? 'Cancelar' : '+ Agregar manual' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="alert alert-success" *ngIf="uploadMessage">{{ uploadMessage }}</div>
+  <div class="alert alert-error" *ngIf="uploadError">{{ uploadError }}</div>
+
+  <div class="form-card" *ngIf="showAddForm">
+    <h3>Agregar estudiante manualmente</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" [(ngModel)]="newName" placeholder="Apellido, Nombre">
+      </div>
+      <div class="form-group">
+        <label>Grado</label>
+        <input type="text" [(ngModel)]="newGrade" placeholder="Ej: Sexto Sexto A">
+      </div>
+      <button class="btn btn-success" (click)="addStudent()" [disabled]="!newName.trim() || !newGrade.trim() || saving">
+        {{ saving ? 'Guardando...' : 'Agregar' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="filters-bar">
+    <input type="text" class="search-input" [(ngModel)]="searchTerm"
+      (ngModelChange)="applyFilters()" placeholder="Buscar estudiante...">
+    <select [(ngModel)]="filterGrade" (ngModelChange)="applyFilters()">
+      <option value="">Todos los grados</option>
+      <option *ngFor="let g of grades" [value]="g">{{ g | grade }}</option>
+    </select>
+    <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()">
+      <option value="all">Todos</option>
+      <option value="available">Disponibles</option>
+      <option value="registered">Inscritos</option>
+    </select>
+    <span class="count">{{ filteredStudents.length }} estudiantes</span>
+  </div>
+
+  <div class="students-table" *ngIf="filteredStudents.length; else noStudents">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Grado</th>
+          <th>Estado</th>
+          <th class="th-action">Eliminar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let student of filteredStudents">
+          <td>{{ student.fullName }}</td>
+          <td>{{ student.grade | grade }}</td>
+          <td>
+            <span class="status-badge" [class.registered]="student.registered">
+              {{ student.registered ? 'Inscrito' : 'Disponible' }}
+            </span>
+          </td>
+          <td class="td-action">
+            <button class="delete-btn" (click)="deleteStudent(student)" title="Eliminar estudiante">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #noStudents>
+    <div class="empty-state">
+      <p>No hay estudiantes cargados. Sube el archivo Excel para comenzar.</p>
+    </div>
+  </ng-template>
+</div>

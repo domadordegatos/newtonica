@@ -1,0 +1,115 @@
+.section {
+  max-width: 900px;
+  h1 { margin: 0 0 24px; color: #1e293b; }
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border: 1px solid #e2e8f0;
+
+  button {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #94a3b8;
+    transition: all 0.2s;
+
+    &.active {
+      background: #6366f1;
+      color: #fff;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      background: #f1f5f9;
+      color: #64748b;
+      margin-left: 6px;
+      &.success { background: #ecfdf5; color: #059669; }
+      &.danger { background: #fef2f2; color: #dc2626; }
+    }
+
+    &.active .badge {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+  }
+}
+
+.registrations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reg-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #f59e0b;
+
+  &.accepted { border-left-color: #10b981; }
+  &.rejected { border-left-color: #ef4444; }
+
+  .reg-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    h3 { margin: 0; font-size: 1.1rem; color: #1e293b; }
+    .date { font-size: 0.8rem; color: #94a3b8; }
+    .status-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      &.accepted { background: #ecfdf5; color: #059669; }
+      &.rejected { background: #fef2f2; color: #dc2626; }
+    }
+  }
+
+  .reg-students {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .student-tag {
+      padding: 4px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #475569;
+    }
+  }
+
+  .reg-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #94a3b8;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}

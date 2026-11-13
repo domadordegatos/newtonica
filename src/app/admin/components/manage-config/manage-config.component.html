@@ -1,0 +1,117 @@
+<div class="section">
+  <h1>Configuración del sitio</h1>
+
+  <div class="config-card">
+    <h3>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+      Identidad del proyecto
+    </h3>
+
+    <div class="form-group">
+      <label>Nombre del sitio</label>
+      <input type="text" [(ngModel)]="name" placeholder="Ej: CSMACTM, Mi Colegio...">
+    </div>
+
+    <div class="form-group">
+      <label>Lema / Subtítulo</label>
+      <input type="text" [(ngModel)]="motto" placeholder="Ej: Inscripción de Proyectos">
+    </div>
+
+    <div class="form-group">
+      <label>Logo</label>
+      <div class="logo-area">
+        <div class="logo-preview" *ngIf="logoPreview">
+          <img [src]="logoPreview" alt="Logo">
+          <button class="btn-remove-logo" (click)="removeLogo()" title="Quitar logo">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <label class="upload-btn" *ngIf="!logoPreview">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+          <span>Subir imagen</span>
+          <span class="upload-hint">PNG, JPG</span>
+          <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" hidden>
+        </label>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 class="access-title">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Apertura y cierre
+    </h3>
+    <p class="access-help">
+      Define el estado de las inscripciones. El logo y el lema se muestran siempre.
+    </p>
+
+    <div class="mode-options">
+      <label class="mode-option" [class.selected]="accessMode === 'open'">
+        <input type="radio" name="accessMode" value="open" [(ngModel)]="accessMode">
+        <span class="mode-dot open"></span>
+        <span class="mode-text">
+          <strong>Inscripciones abiertas</strong>
+          <small>Los estudiantes ven proyectos y retos, y pueden inscribirse.</small>
+        </span>
+      </label>
+
+      <label class="mode-option" [class.selected]="accessMode === 'countdown'">
+        <input type="radio" name="accessMode" value="countdown" [(ngModel)]="accessMode">
+        <span class="mode-dot countdown"></span>
+        <span class="mode-text">
+          <strong>Con temporizador</strong>
+          <small>Pueden ver proyectos y retos, pero no inscribirse. Las inscripciones abren solas en la fecha indicada.</small>
+        </span>
+      </label>
+
+      <label class="mode-option" [class.selected]="accessMode === 'closed'">
+        <input type="radio" name="accessMode" value="closed" [(ngModel)]="accessMode">
+        <span class="mode-dot closed"></span>
+        <span class="mode-text">
+          <strong>Desactivado</strong>
+          <small>No se muestra nada. Avisa que por ahora no hay proyectos ni retos disponibles.</small>
+        </span>
+      </label>
+    </div>
+
+    <div class="form-group" *ngIf="accessMode === 'countdown'">
+      <label>Fecha y hora de apertura de inscripciones</label>
+      <input type="datetime-local" [(ngModel)]="opensAt">
+      <span class="field-hint" *ngIf="opensAtLabel">Abren el {{ opensAtLabel }}</span>
+      <span class="field-hint warn" *ngIf="countdownExpired">
+        Esta fecha ya pasó, así que las inscripciones ya están abiertas.
+      </span>
+    </div>
+
+    <div class="form-group" *ngIf="accessMode === 'closed'">
+      <label>Mensaje para los estudiantes <span class="optional">(opcional)</span></label>
+      <input type="text" [(ngModel)]="closedMessage"
+        placeholder="Por ahora no hay proyectos ni retos disponibles.">
+    </div>
+
+    <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+    <div class="alert alert-success" *ngIf="saved">Configuración guardada correctamente.</div>
+
+    <button class="btn btn-success btn-full" (click)="save()" [disabled]="!name.trim() || saving">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+      {{ saving ? 'Guardando...' : 'Guardar configuración' }}
+    </button>
+  </div>
+</div>

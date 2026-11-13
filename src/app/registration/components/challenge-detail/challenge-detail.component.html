@@ -1,0 +1,171 @@
+<div class="detail-page">
+  <!-- Header -->
+  <div class="detail-header">
+    <button class="btn-back" (click)="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"/>
+        <polyline points="12 19 5 12 12 5"/>
+      </svg>
+      Volver
+    </button>
+    <div class="header-brand" *ngIf="siteConfig.logoBase64">
+      <img [src]="siteConfig.logoBase64" alt="Logo" class="header-logo">
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Cargando información del reto...</p>
+  </div>
+
+  <!-- Not found -->
+  <div class="not-found" *ngIf="!loading && notFound">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      <line x1="8" y1="11" x2="14" y2="11"/>
+    </svg>
+    <h2>Información no disponible</h2>
+    <p>Este reto aún no tiene información pública registrada.</p>
+    <button class="btn btn-primary" (click)="goBack()">Volver al inicio</button>
+  </div>
+
+  <!-- Content -->
+  <ng-container *ngIf="!loading">
+  <div class="detail-content" *ngIf="detail || rubric">
+    <!-- Title section -->
+    <div class="title-section animate-in">
+      <div class="title-badge" style="background: #f59e0b;">RETO</div>
+      <h1>{{ detail?.title || challengeName }}</h1>
+    </div>
+
+    <!-- Objective card -->
+    <div class="info-card animate-in delay-1" *ngIf="detail?.objective">
+      <div class="info-card-icon objective-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <circle cx="12" cy="12" r="6"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+      </div>
+      <div class="info-card-body">
+        <h3>Objetivo</h3>
+        <p>{{ detail?.objective }}</p>
+      </div>
+    </div>
+
+    <!-- Instructor card -->
+    <div class="info-card animate-in delay-2" *ngIf="detail?.instructor">
+      <div class="info-card-icon instructor-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+      </div>
+      <div class="info-card-body">
+        <h3>Director</h3>
+        <p>{{ detail?.instructor }}</p>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div class="section-card animate-in" *ngFor="let section of detail?.sections; let i = index"
+      [style.animation-delay]="(0.15 * (i + 3)) + 's'">
+      <div class="section-header-bar">
+        <div class="section-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path [attr.d]="getSectionIcon(section.title)"/>
+          </svg>
+        </div>
+        <h2>{{ section.title }}</h2>
+      </div>
+      <ul class="section-items">
+        <li *ngFor="let item of section.items">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{{ formatItem(item) }}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- YouTube/Media section -->
+    <div class="videos-section animate-in" *ngIf="detail?.youtubeUrls?.length"
+      [style.animation-delay]="(0.15 * (sectionCount + 3)) + 's'">
+      <div class="videos-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        <h2>Ejemplos y referencias</h2>
+      </div>
+      <div class="videos-grid">
+        <ng-container *ngFor="let url of detail?.youtubeUrls">
+          <div class="video-wrapper" *ngIf="getEmbedUrl(url)">
+            <iframe
+              [src]="getEmbedUrl(url) | safeUrl"
+              frameborder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen>
+            </iframe>
+          </div>
+          <a class="external-video-link" *ngIf="isExternalVideoUrl(url) && !getEmbedUrl(url)"
+            [href]="url" target="_blank" rel="noopener noreferrer">
+            <div class="external-video-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </div>
+            <span class="external-video-label">{{ getExternalLabel(url) }}</span>
+            <span class="external-video-url">{{ url | slice:0:60 }}{{ url.length > 60 ? '...' : '' }}</span>
+          </a>
+          <a class="image-wrapper" *ngIf="isImageUrl(url) && !failedImages.has(url)"
+            [href]="url" target="_blank" rel="noopener noreferrer">
+            <img [src]="url" alt="Ejemplo de referencia" loading="lazy"
+              (error)="onImageError(url)">
+          </a>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- Rubric -->
+    <div class="rubric-section animate-in" *ngIf="rubric"
+      [style.animation-delay]="(0.15 * (sectionCount + 4)) + 's'">
+      <div class="videos-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <h2>Rúbrica de evaluación</h2>
+      </div>
+
+      <div class="rubric-criterion" *ngFor="let criterion of rubric.criteria">
+        <div class="rubric-criterion-header">
+          <h3>{{ criterion.name }}</h3>
+          <span class="rubric-weight">{{ weightPercent(criterion.weight) }}</span>
+        </div>
+        <div class="rubric-levels-list">
+          <div class="rubric-level-row" *ngFor="let level of rubric.levels; let li = index">
+            <div class="rubric-level-name">
+              <span class="rubric-level-badge">{{ level.score }}</span>
+              {{ level.name }}
+            </div>
+            <p class="rubric-descriptor">{{ criterion.descriptors[li] }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rubric-notes" *ngIf="rubric.notesTitle">
+        <h4>{{ rubric.notesTitle }}</h4>
+        <p>{{ rubric.notesText }}</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="detail-footer animate-in"
+      [style.animation-delay]="(0.15 * (sectionCount + 5)) + 's'">
+      <p>{{ siteConfig.name }} {{ siteConfig.motto ? '· ' + siteConfig.motto : '' }}</p>
+    </div>
+  </div>
+  </ng-container>
+</div>

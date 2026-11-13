@@ -1,0 +1,47 @@
+<div class="section">
+  <div class="section-header">
+    <h1>Gestión de Periodos</h1>
+    <button class="btn btn-primary" (click)="showForm = !showForm">
+      {{ showForm ? 'Cancelar' : '+ Nuevo Periodo' }}
+    </button>
+  </div>
+
+  <div class="form-card" *ngIf="showForm">
+    <h3>Crear nuevo periodo</h3>
+    <p class="form-info">Al crear un nuevo periodo, este se activa automáticamente. Los proyectos y registros del periodo anterior se conservan pero ya no se modifican.</p>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre del periodo</label>
+        <input type="text" [(ngModel)]="newName" placeholder="Ej: Periodo 1">
+      </div>
+      <div class="form-group">
+        <label>Año</label>
+        <input type="number" [(ngModel)]="newYear">
+      </div>
+      <button class="btn btn-success" (click)="createPeriod()" [disabled]="!newName.trim()">
+        Crear periodo
+      </button>
+    </div>
+  </div>
+
+  <div class="periods-list" *ngIf="periods.length; else noPeriods">
+    <div class="period-card" *ngFor="let period of periods" [class.active]="period.active">
+      <div class="period-info">
+        <h3>{{ period.name }}</h3>
+        <span class="year">{{ period.year }}</span>
+        <span class="badge" *ngIf="period.active">ACTIVO</span>
+      </div>
+      <div class="period-actions">
+        <button class="btn btn-sm btn-outline" *ngIf="!period.active" (click)="activatePeriod(period.id)">
+          Activar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noPeriods>
+    <div class="empty-state">
+      <p>No hay periodos creados. Crea uno para comenzar.</p>
+    </div>
+  </ng-template>
+</div>

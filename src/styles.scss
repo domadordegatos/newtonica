@@ -1,1 +1,64 @@
-/* You can add global styles to this file, and also import other style files */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f8fafc;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: #6366f1;
+    color: #fff;
+    &:hover:not(:disabled) { background: #4f46e5; }
+  }
+
+  &.btn-success {
+    background: #10b981;
+    color: #fff;
+    &:hover:not(:disabled) { background: #059669; }
+  }
+
+  &.btn-danger {
+    background: #ef4444;
+    color: #fff;
+    &:hover:not(:disabled) { background: #dc2626; }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    &:hover { border-color: #6366f1; color: #6366f1; }
+  }
+
+  &.btn-sm {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+  }
+}
+
+input, select {
+  font-family: inherit;
+}

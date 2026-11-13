@@ -40,3 +40,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Despliegue y herramientas locales
+.firebase/
+.claude/
+
+# Volcados de datos de produccion: no van al repositorio
+/backups

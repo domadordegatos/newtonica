@@ -1,0 +1,73 @@
+rules_version = '2';
+
+// Los estudiantes se inscriben sin iniciar sesión, así que el flujo de
+// inscripción necesita permiso de escritura anónimo, pero acotado: solo puede
+// crear solicitudes y tocar los dos campos que ese proceso actualiza.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdmin() {
+      return request.auth != null;
+    }
+
+    // Solo cambian las claves indicadas y ninguna otra.
+    function soloCambia(campos) {
+      return request.resource.data.diff(resource.data)
+        .affectedKeys().hasOnly(campos);
+    }
+
+    // Catálogo público: lo lee cualquiera, lo edita solo el comité.
+    match /periods/{id}        { allow read: if true; allow write: if esAdmin(); }
+    match /challenges/{id}     { allow read: if true; allow write: if esAdmin(); }
+    match /challengeDetails/{id} { allow read: if true; allow write: if esAdmin(); }
+    match /challengeRubrics/{id} { allow read: if true; allow write: if esAdmin(); }
+    match /projectDetails/{id} { allow read: if true; allow write: if esAdmin(); }
+    match /projectRubrics/{id} { allow read: if true; allow write: if esAdmin(); }
+    match /config/{id}         { allow read: if true; allow write: if esAdmin(); }
+
+    match /projects/{id} {
+      allow read: if true;
+      allow create, delete: if esAdmin();
+      // El tope se respeta SIEMPRE, incluido el comité: no hay forma de que un
+      // proyecto quede con más grupos que cupos. La única manera de admitir más
+      // es subir totalSlots al editar el proyecto, y por eso la comparación usa
+      // el totalSlots nuevo: si el comité amplía los cupos en la misma
+      // operación, el cambio pasa sin problema.
+      // Además, el estudiante solo puede mover el contador, nada más.
+      allow update: if
+        request.resource.data.usedSlots is int &&
+        request.resource.data.usedSlots >= 0 &&
+        request.resource.data.usedSlots <= request.resource.data.totalSlots &&
+        (esAdmin() || soloCambia(['usedSlots']));
+    }
+
+    match /students/{id} {
+      allow read: if true;
+      allow create, delete: if esAdmin();
+      // El estudiante solo puede marcarse como inscrito, y solo si aún no lo
+      // está. Esto convierte el campo en una reserva: si dos inscripciones
+      // intentan tomar al mismo estudiante a la vez, la segunda se rechaza y,
+      // como el lote es atómico, esa inscripción completa no se guarda.
+      // Liberar la marca (al rechazar un grupo) es cosa del comité.
+      allow update: if esAdmin() || (
+        soloCambia(['registered']) &&
+        resource.data.get('registered', false) == false &&
+        request.resource.data.registered == true
+      );
+    }
+
+    match /registrations/{id} {
+      allow read: if true;
+      // Una solicitud nueva siempre nace pendiente y con integrantes.
+      allow create: if esAdmin() || (
+        request.resource.data.status == 'pending' &&
+        request.resource.data.studentIds is list &&
+        request.resource.data.studentIds.size() > 0 &&
+        request.resource.data.projectId is string &&
+        request.resource.data.periodId is string
+      );
+      // Aceptar, rechazar o eliminar es exclusivo del comité.
+      allow update, delete: if esAdmin();
+    }
+  }
+}

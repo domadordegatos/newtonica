@@ -1,0 +1,64 @@
+<div class="section">
+  <h1>Solicitudes de Inscripción</h1>
+
+  <div class="tabs">
+    <button [class.active]="activeTab === 'pending'" (click)="activeTab = 'pending'">
+      Pendientes <span class="badge">{{ pending.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'accepted'" (click)="activeTab = 'accepted'">
+      Aceptadas <span class="badge success">{{ accepted.length }}</span>
+    </button>
+    <button [class.active]="activeTab === 'rejected'" (click)="activeTab = 'rejected'">
+      Rechazadas <span class="badge danger">{{ rejected.length }}</span>
+    </button>
+  </div>
+
+  <div class="registrations-list" *ngIf="activeTab === 'pending'">
+    <div class="reg-card" *ngFor="let item of pending">
+      <div class="reg-header">
+        <h3>{{ item.projectName }}</h3>
+        <span class="date">{{ item.registration.createdAt | date:'short' }}</span>
+      </div>
+      <div class="reg-students">
+        <span class="student-tag" *ngFor="let name of item.studentNames">{{ name }}</span>
+      </div>
+      <div class="reg-actions">
+        <button class="btn btn-success btn-sm" (click)="accept(item.registration.id)">Aceptar</button>
+        <button class="btn btn-danger btn-sm" (click)="reject(item.registration.id)">Rechazar</button>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="!pending.length">
+      <p>No hay solicitudes pendientes.</p>
+    </div>
+  </div>
+
+  <div class="registrations-list" *ngIf="activeTab === 'accepted'">
+    <div class="reg-card accepted" *ngFor="let item of accepted">
+      <div class="reg-header">
+        <h3>{{ item.projectName }}</h3>
+        <span class="status-label accepted">Aceptada</span>
+      </div>
+      <div class="reg-students">
+        <span class="student-tag" *ngFor="let name of item.studentNames">{{ name }}</span>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="!accepted.length">
+      <p>No hay solicitudes aceptadas.</p>
+    </div>
+  </div>
+
+  <div class="registrations-list" *ngIf="activeTab === 'rejected'">
+    <div class="reg-card rejected" *ngFor="let item of rejected">
+      <div class="reg-header">
+        <h3>{{ item.projectName }}</h3>
+        <span class="status-label rejected">Rechazada</span>
+      </div>
+      <div class="reg-students">
+        <span class="student-tag" *ngFor="let name of item.studentNames">{{ name }}</span>
+      </div>
+    </div>
+    <div class="empty-state" *ngIf="!rejected.length">
+      <p>No hay solicitudes rechazadas.</p>
+    </div>
+  </div>
+</div>
